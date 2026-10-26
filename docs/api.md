@@ -72,12 +72,12 @@ An empty store returns `{ "items": [], "total": 0 }`.
 POST /notes
 Content-Type: application/json
 
-{"title": "Groceries", "body": "Milk, eggs"}
+{"title": "Groceries", "body": "Egg"}
 ```
 
 **Response — `201 Created`**
 ```json
-{"id": 1, "title": "Groceries", "body": "Milk, eggs"}
+{"id": 1, "title": "Groceries", "body": "Egg"}
 ```
 
 **Response — `422 Unprocessable Entity`** (body too long)
@@ -104,7 +104,7 @@ GET /notes/1
 
 **Response — `200 OK`**
 ```json
-{"id": 1, "title": "Groceries", "body": "Milk, eggs"}
+{"id": 1, "title": "Groceries", "body": "Egg"}
 ```
 
 **Response — `404 Not Found`**
