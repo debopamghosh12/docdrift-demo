@@ -27,28 +27,32 @@ Errors are returned as `{"detail": ...}` with an appropriate status code:
 
 `GET /notes`
 
-Returns notes in creation order (oldest first), up to `limit`.
+Returns notes in creation order (oldest first) wrapped in an envelope that includes the list of notes and the total number of notes.
 
 **Query parameters**
 
 | Name    | Type    | Required | Default | Constraints |
 |---------|---------|----------|---------|-------------|
 | `limit` | integer | no       | `20`    | `>= 1` |
+| `offset` | integer | no       | `0`     | `>= 0` |
 
 **Request**
 ```http
-GET /notes?limit=2
+GET /notes?limit=2&offset=0
 ```
 
 **Response — `200 OK`**
 ```json
-[
+{
+  "items": [
   {"id": 1, "title": "Groceries", "body": "Milk, eggs"},
   {"id": 2, "title": "Ideas", "body": "Build a docs-sync tool"}
-]
+  ],
+  "total": 2
+}
 ```
 
-An empty store returns `[]`.
+An empty store returns `{ "items": [], "total": 0 }`.
 
 ---
 
@@ -125,9 +129,10 @@ GET /notes/1
 DELETE /notes/1
 ```
 
-**Response — `204 No Content`**
-
-Empty body.
+**Response — `200 OK`**
+```json
+{"deleted": true, "id": 1}
+```
 
 **Response — `404 Not Found`**
 ```json

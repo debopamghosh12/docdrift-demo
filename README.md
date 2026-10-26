@@ -47,16 +47,20 @@ List notes, oldest first.
 
 Query parameters:
 - `limit` (int, optional, default `20`, minimum `1`) — maximum number of notes to return.
+- `offset` (int, optional, default `0`, minimum `0`) — number of notes to skip before returning results.
 
 ```bash
-curl "http://localhost:8000/notes?limit=10"
+curl "http://localhost:8000/notes?limit=10&offset=20"
 ```
 
 `200 OK`
 ```json
-[
+{
+  "items": [
   {"id": 1, "title": "Groceries", "body": "Milk, eggs"}
-]
+  ],
+  "total": 42
+}
 ```
 
 ### `POST /notes`
@@ -105,7 +109,12 @@ Delete a note.
 curl -X DELETE http://localhost:8000/notes/1
 ```
 
-`204 No Content` on success (empty body). `404 Not Found` with `{"detail": "Note not found"}` if the note does not exist.
+`200 OK`
+```json
+{"deleted": true, "id": 1}
+```
+
+`404 Not Found` with `{"detail": "Note not found"}` if the note does not exist.
 
 See [docs/api.md](docs/api.md) for the full endpoint reference.
 
