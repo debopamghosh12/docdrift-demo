@@ -70,12 +70,12 @@ Create a note.
 ```bash
 curl -X POST http://localhost:8000/notes \
   -H "Content-Type: application/json" \
-  -d '{"title": "Groceries", "body": "M"}'
+  -d '{"title": "Groceries", "body": "Milk"}'
 ```
 
 `201 Created`
 ```json
-{"id": 1, "title": "Groceries", "body": "M"}
+{"id": 1, "title": "Groceries", "body": "Milk"}
 ```
 
 `422 Unprocessable Entity` if `body` is longer than `MAX_NOTE_LENGTH`:
