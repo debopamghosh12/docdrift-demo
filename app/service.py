@@ -25,6 +25,10 @@ def fetch_notes(limit: int = 20, offset: int = 0) -> list[dict]:
     return list(_notes.values())[offset : offset + limit]
 
 
+def _count_notes() -> int:
+    return len(_notes)
+
+
 def get_note(note_id: int) -> dict | None:
     """Return the note with the given id, or None if it does not exist."""
     return _notes.get(note_id)
