@@ -19,7 +19,8 @@ class NotePatch(BaseModel):
 
 @app.get("/notes")
 def list_notes(limit: int = Query(NOTES_PAGE_SIZE, ge=1), offset: int = Query(0, ge=0)):
-    return service.fetch_notes(limit=limit, offset=offset)
+    items = service.fetch_notes(limit=limit, offset=offset)
+    return {"items": items, "total": service._count_notes()}
 
 
 @app.post("/notes", status_code=201)
@@ -49,10 +50,11 @@ def update_note(note_id: int, patch: NotePatch):
     return note
 
 
-@app.delete("/notes/{note_id}", status_code=204)
+@app.delete("/notes/{note_id}")
 def delete_note(note_id: int):
     if not service.delete_note(note_id):
         raise HTTPException(status_code=404, detail="Note not found")
+    return {"deleted": True, "id": note_id}
 
 
 if __name__ == "__main__":
