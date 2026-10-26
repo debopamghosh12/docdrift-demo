@@ -42,10 +42,10 @@ GET /notes?limit=2
 
 **Response — `200 OK`**
 ```json
-[
-  {"id": 1, "title": "Groceries", "body": "Milk, eggs"},
-  {"id": 2, "title": "Ideas", "body": "Build a docs-sync tool"}
-]
+{
+  "items": [],
+  "total": 0
+}
 ```
 
 An empty store returns `[]`.
@@ -125,7 +125,10 @@ GET /notes/1
 DELETE /notes/1
 ```
 
-**Response — `204 No Content`**
+**Response — `200 OK`**
+```json
+{"deleted":true,"id":1}
+```
 
 Empty body.
 

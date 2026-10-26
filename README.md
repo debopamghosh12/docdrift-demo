@@ -54,9 +54,10 @@ curl "http://localhost:8000/notes?limit=10"
 
 `200 OK`
 ```json
-[
-  {"id": 1, "title": "Groceries", "body": "Milk, eggs"}
-]
+{
+  "items": [],
+  "total": 0
+}
 ```
 
 ### `POST /notes`
@@ -105,7 +106,7 @@ Delete a note.
 curl -X DELETE http://localhost:8000/notes/1
 ```
 
-`204 No Content` on success (empty body). `404 Not Found` with `{"detail": "Note not found"}` if the note does not exist.
+`200 OK` on success with `{"deleted": true, "id": 1}`. `404 Not Found` with `{"detail": "Note not found"}` if the note does not exist.
 
 See [docs/api.md](docs/api.md) for the full endpoint reference.
 
