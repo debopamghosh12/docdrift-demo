@@ -10,7 +10,7 @@ All request and response bodies are JSON. Storage is in-memory; data is lost on 
 |---------|---------|-------------|
 | `id`    | integer | Server-assigned ID, starting at 1 and incrementing. IDs are never reused. |
 | `title` | string  | Note title. |
-| `body`  | string  | Note body, at most `MAX_NOTE_LENGTH` characters (default 1000). |
+| `body`  | string  | Note body, at most `MAX_BODY_LENGTH` characters (default 1000). |
 
 ## Errors
 
@@ -19,7 +19,7 @@ Errors are returned as `{"detail": ...}` with an appropriate status code:
 | Status | When |
 |--------|------|
 | `404 Not Found` | The requested `note_id` does not exist. `detail` is `"Note not found"`. |
-| `422 Unprocessable Entity` | Request validation failed: missing/invalid fields, non-integer `note_id`, `limit < 1`, or `body` longer than `MAX_NOTE_LENGTH`. For FastAPI validation errors `detail` is a list of error objects; for the length check it is the string `"body exceeds MAX_NOTE_LENGTH (<n>)"`. |
+| `422 Unprocessable Entity` | Request validation failed: missing/invalid fields, non-integer `note_id`, `limit < 1`, or `body` longer than `MAX_BODY_LENGTH`. For FastAPI validation errors `detail` is a list of error objects; for the length check it is the string `"body exceeds MAX_BODY_LENGTH (<n>)"`. |
 
 ---
 
@@ -27,17 +27,18 @@ Errors are returned as `{"detail": ...}` with an appropriate status code:
 
 `GET /notes`
 
-Returns notes in creation order (oldest first), up to `limit`.
+Returns notes in creation order (oldest first), up to `limit`, optionally skipping `offset` notes.
 
 **Query parameters**
 
 | Name    | Type    | Required | Default | Constraints |
 |---------|---------|----------|---------|-------------|
 | `limit` | integer | no       | `20`    | `>= 1` |
+| `offset` | integer | no       | `0`     | `>= 0` |
 
 **Request**
 ```http
-GET /notes?limit=2
+GET /notes?limit=2&offset=5
 ```
 
 **Response — `200 OK`**
@@ -78,7 +79,7 @@ Content-Type: application/json
 
 **Response — `422 Unprocessable Entity`** (body too long)
 ```json
-{"detail": "body exceeds MAX_NOTE_LENGTH (1000)"}
+{"detail": "body exceeds MAX_BODY_LENGTH (1000)"}
 ```
 
 ---
@@ -106,6 +107,48 @@ GET /notes/1
 **Response — `404 Not Found`**
 ```json
 {"detail": "Note not found"}
+```
+
+---
+
+## Update a note
+
+`PATCH /notes/{note_id}`
+
+**Path parameters**
+
+| Name      | Type    | Description |
+|-----------|---------|-------------|
+| `note_id` | integer | ID of the note. |
+
+**Request body** – JSON representation of `NotePatch`
+
+| Field   | Type    | Description |
+|---------|---------|-------------|
+| `title` | string  | New title for the note (optional). |
+| `body`  | string  | New body for the note (optional). |
+
+**Request**
+```http
+PATCH /notes/1
+Content-Type: application/json
+
+{"title": "Updated title", "body": "Updated body"}
+```
+
+**Response — `200 OK`**
+```json
+{"id": 1, "title": "Updated title", "body": "Updated body"}
+```
+
+**Response — `404 Not Found`**
+```json
+{"detail": "Note not found"}
+```
+
+**Response — `422 Unprocessable Entity`**
+```json
+{"detail": "<validation error message>"}
 ```
 
 ---

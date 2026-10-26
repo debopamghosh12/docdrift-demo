@@ -29,12 +29,13 @@ All settings are read from environment variables in `app/config.py` via `os.gete
 |-------------------|-------------|-------------|
 | `APP_PORT`        | `8000`      | Port the server listens on when started with `python -m app.main`. Ignored when launching via `uvicorn` directly (use `--port`). |
 | `DATABASE_URL`    | `memory://` | Database connection string. Read but currently unused — storage is always in-memory. |
-| `MAX_NOTE_LENGTH` | `1000`      | Maximum number of characters allowed in a note's `body`. Longer bodies are rejected with `422`. |
+| `MAX_BODY_LENGTH` | `1000`      | Maximum number of characters allowed in a note's `body`. Longer bodies are rejected with `422`. |
+| `NOTES_PAGE_SIZE` | `20`        | Default page size for paginated note listings. |
 
 Example:
 
 ```bash
-APP_PORT=9000 MAX_NOTE_LENGTH=500 python -m app.main
+APP_PORT=8000 MAX_BODY_LENGTH=1000 NOTES_PAGE_SIZE=20 python -m app.main
 ```
 
 ## Endpoints
@@ -47,9 +48,10 @@ List notes, oldest first.
 
 Query parameters:
 - `limit` (int, optional, default `20`, minimum `1`) — maximum number of notes to return.
+- `offset` (int, optional, default `0`, minimum `0`) — number of notes to skip before returning results.
 
 ```bash
-curl "http://localhost:8000/notes?limit=10"
+curl "http://localhost:8000/notes?limit=10&offset=5"
 ```
 
 `200 OK`
@@ -74,9 +76,9 @@ curl -X POST http://localhost:8000/notes \
 {"id": 1, "title": "Groceries", "body": "Milk, eggs"}
 ```
 
-`422 Unprocessable Entity` if `body` is longer than `MAX_NOTE_LENGTH`:
+`422 Unprocessable Entity` if `body` is longer than `MAX_BODY_LENGTH`:
 ```json
-{"detail": "body exceeds MAX_NOTE_LENGTH (1000)"}
+{"detail": "body exceeds MAX_BODY_LENGTH (1000)"}
 ```
 
 ### `GET /notes/{note_id}`
@@ -107,17 +109,41 @@ curl -X DELETE http://localhost:8000/notes/1
 
 `204 No Content` on success (empty body). `404 Not Found` with `{"detail": "Note not found"}` if the note does not exist.
 
+### `PATCH /notes/{note_id}`
+
+Update an existing note. Only the fields provided in the request body are changed; omitted fields remain unchanged.
+
+**Request body** (JSON, fields optional):
+```json
+{ "title": "string", "body": "string" }
+```
+
+**Responses**
+- `200 OK` – Returns the updated note.
+  ```json
+  {"id": 1, "title": "...", "body": "..."}
+  ```
+- `404 Not Found` – The note with the given `note_id` does not exist.
+  ```json
+  {"detail": "Note not found"}
+  ```
+- `422 Unprocessable Entity` – Validation error (e.g., body exceeds the maximum length).
+  ```json
+  {"detail": "..."}
+  ```
+
 See [docs/api.md](docs/api.md) for the full endpoint reference.
 
 ## Service functions (`app/service.py`)
 
 ### `create_note(title, body)`
 - `title` (`str`) — note title.
-- `body` (`str`) — note body; must be at most `MAX_NOTE_LENGTH` characters.
+- `body` (`str`) — note body; must be at most `MAX_BODY_LENGTH` characters.
 - Returns the created note as a `dict`. Raises `ValueError` if `body` is too long.
 
-### `list_notes(limit=20)`
+### `fetch_notes(limit=20, offset=0)`
 - `limit` (`int`, default `20`) — maximum number of notes to return.
+- `offset` (`int`, default `0`) — number of notes to skip before returning results.
 - Returns a `list[dict]` of notes, oldest first.
 
 ### `get_note(note_id)`
@@ -127,6 +153,13 @@ See [docs/api.md](docs/api.md) for the full endpoint reference.
 ### `delete_note(note_id)`
 - `note_id` (`int`) — ID of the note.
 - Returns `True` if the note existed and was deleted, `False` otherwise.
+
+### `update_note(note_id, title=None, body=None)`
+- `note_id` (`int`) — ID of the note to update.
+- `title` (`str`, optional) — New title for the note; if omitted the title is left unchanged.
+- `body` (`str`, optional) — New body for the note; if omitted the body is left unchanged. Must be at most `MAX_BODY_LENGTH` characters.
+
+Returns the updated note as a `dict`, or `None` if the note does not exist. Raises `ValueError` if `body` exceeds `MAX_BODY_LENGTH`.
 
 ## Project layout
 
